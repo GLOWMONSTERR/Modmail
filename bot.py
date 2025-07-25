@@ -63,16 +63,19 @@ if sys.platform == "win32":
         logger.error("Failed to use WindowsProactorEventLoopPolicy.", exc_info=True)
 
 
+import aiohttp
+import asyncio
+import discord
+from discord.ext import commands
+from core.config import ConfigManager  # adjust if needed
+
 class ModmailBot(commands.Bot):
     def __init__(self):
-        import aiohttp
-        import asyncio
-
-        # Setup required attributes early
-        self.session = aiohttp.ClientSession()
+        # Just declare for now
+        self.session = None
         self._connected = asyncio.Event()
-
-        # Set up config and populate cache
+        
+        # Create config and cache
         self.config = ConfigManager(self)
         self.config.populate_cache()
 
@@ -81,8 +84,12 @@ class ModmailBot(commands.Bot):
         if not self.config["enable_presence_intent"]:
             intents.presences = False
 
-        # Call super constructor with prefix and intents
+        # Initialize bot
         super().__init__(command_prefix=self.get_prefix, intents=intents)
+
+    async def setup_hook(self):
+        # Now it's safe to create the session in an async context
+        self.session = aiohttp.ClientSession()
         self.session = None
         self._api = None
         self.formatter = SafeFormatter()
@@ -1842,21 +1849,20 @@ def main():
     bot = ModmailBot()
     bot.run()
 
-import os
 import asyncio
-from threading import Thread
-from webserver import app
+from bot import ModmailBot  # make sure this path is correct
+from modmail_ping import app  # assuming this is your Sanic app
 
-def start_web():
+async def run_bot_and_web():
+    bot = ModmailBot()
+    
+    # Start the bot in the background
+    bot_task = asyncio.create_task(bot.start(bot.config["token"]))
+
+    # Start the web server (Sanic blocks, must run in main thread)
     app.run(host="0.0.0.0", port=10000)
 
-def main():
-    # Start webserver in a background thread
-    Thread(target=start_web).start()
-
-    # Start the Discord bot
-    bot = ModmailBot()
-    asyncio.run(bot.start(os.getenv("TOKEN")))
+    await bot_task  # Wait for bot to finish (if it ever does)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(run_bot_and_web())
