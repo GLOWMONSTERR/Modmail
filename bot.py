@@ -85,7 +85,7 @@ class ModmailBot(commands.Bot):
             intents.presences = False
 
         # Initialize bot
-        super().__init__(command_prefix=self.get_prefix, intents=intents)
+        super().__init__(command_prefix="?", intents=intents)
 
     async def setup_hook(self):
         # Now it's safe to create the session in an async context
