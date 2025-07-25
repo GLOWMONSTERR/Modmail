@@ -1836,7 +1836,6 @@ import os
 import asyncio
 from threading import Thread
 from webserver import app
-from core.bot import ModmailBot  # Adjust this import path if needed
 
 def start_web():
     app.run(host="0.0.0.0", port=10000)
