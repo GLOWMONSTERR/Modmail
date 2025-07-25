@@ -1851,7 +1851,7 @@ def main():
 
 import asyncio
 from bot import ModmailBot  # make sure this path is correct
-from modmail_ping import app  # assuming this is your Sanic app
+from webserver import app  # assuming this is your Sanic app
 
 async def run_bot_and_web():
     bot = ModmailBot()
