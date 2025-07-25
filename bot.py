@@ -71,21 +71,25 @@ from core.config import ConfigManager  # adjust if needed
 
 class ModmailBot(commands.Bot):
     def __init__(self):
-        # Just declare for now
-        self.session = None
-        self._connected = asyncio.Event()
-        
-        # Create config and cache
-        self.config = ConfigManager(self)
-        self.config.populate_cache()
+        import aiohttp
+        import asyncio
 
-        # Configure intents
+        # Setup config first (if needed before init)
+        self.config = ConfigManager(self)
+
         intents = discord.Intents.all()
         if not self.config["enable_presence_intent"]:
             intents.presences = False
 
-        # Initialize bot
+        # ✅ Important: call super() first
         super().__init__(command_prefix="-", intents=intents)
+
+        # ✅ Set these after super().__init__()
+        self.session = aiohttp.ClientSession()
+        self._connected = asyncio.Event()
+
+        # ✅ Populate config after everything is initialized
+        self.config.populate_cache()
 
     async def setup_hook(self):
         # Now it's safe to create the session in an async context
