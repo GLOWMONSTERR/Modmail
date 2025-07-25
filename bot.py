@@ -65,14 +65,24 @@ if sys.platform == "win32":
 
 class ModmailBot(commands.Bot):
     def __init__(self):
+        import aiohttp
+        import asyncio
+
+        # Setup required attributes early
+        self.session = aiohttp.ClientSession()
+        self._connected = asyncio.Event()
+
+        # Set up config and populate cache
         self.config = ConfigManager(self)
         self.config.populate_cache()
 
+        # Configure intents
         intents = discord.Intents.all()
         if not self.config["enable_presence_intent"]:
             intents.presences = False
 
-        super().__init__(command_prefix=None, intents=intents)  # implemented in `get_prefix`
+        # Call super constructor with prefix and intents
+        super().__init__(command_prefix=self.get_prefix, intents=intents)
         self.session = None
         self._api = None
         self.formatter = SafeFormatter()
